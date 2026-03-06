@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UtopLearn — Intro</title>
+
+  <!-- Google Fonts – clean Apple-style sans-serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- GSAP 3 core + plugins from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    /* ── Reset & base ─────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Stage ─────────────────────────────────────────── */
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+
+    /* Subtle radial glow behind the logo */
+    .stage::before {
+      content: "";
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(219, 100, 130, 0.12) 0%,
+        transparent 70%
+      );
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Logo ──────────────────────────────────────────── */
+    .logo-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-wrapper img {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      will-change: transform, opacity, filter;
+    }
+
+    /* Soft reflection under the logo */
+    .logo-reflection {
+      position: absolute;
+      bottom: -60px;
+      width: 180px;
+      height: 60px;
+      background: linear-gradient(
+        to bottom,
+        rgba(219, 100, 130, 0.08),
+        transparent
+      );
+      border-radius: 50%;
+      filter: blur(20px);
+      opacity: 0;
+      z-index: 0;
+    }
+
+    /* ── Text ──────────────────────────────────────────── */
+    .tagline {
+      position: relative;
+      z-index: 1;
+      margin-top: 48px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .tagline-line {
+      display: block;
+      color: #f5f5f7;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      will-change: transform, opacity;
+    }
+
+    .tagline-line:first-child {
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-weight: 600;
+    }
+
+    .tagline-line:last-child {
+      font-size: clamp(1.1rem, 2.4vw, 1.7rem);
+      font-weight: 300;
+      color: rgba(245, 245, 247, 0.7);
+      margin-top: 8px;
+    }
+
+    /* ── Divider line ─────────────────────────────────── */
+    .divider {
+      width: 48px;
+      height: 1px;
+      background: rgba(245, 245, 247, 0.2);
+      margin-top: 32px;
+      will-change: transform, opacity;
+      z-index: 1;
+    }
+
+    /* ── Responsive tweaks ────────────────────────────── */
+    @media (max-width: 600px) {
+      .logo-wrapper img {
+        width: 130px;
+        height: 130px;
+      }
+
+      .logo-reflection {
+        width: 130px;
+      }
+
+      .tagline {
+        margin-top: 36px;
+        padding: 0 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <!-- Logo -->
+    <div class="logo-wrapper">
+      <img
+        src="utoplearn-3d-logo-image-rounded-optimised copy.png"
+        alt="UtopLearn Logo"
+        id="logo"
+      />
+      <div class="logo-reflection" id="logoReflection"></div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider" id="divider"></div>
+
+    <!-- Tagline -->
+    <div class="tagline">
+      <span class="tagline-line" id="line1">Improve Your English,</span>
+      <span class="tagline-line" id="line2">Speak Confidently</span>
+    </div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════════════════════
+       Apple-style reveal timeline using GSAP best practices
+       ══════════════════════════════════════════════════════ */
+
+    // Set initial states (GSAP best practice: explicit initial values)
+    gsap.set("#logo", {
+      opacity: 0,
+      scale: 0.82,
+      filter: "blur(12px) brightness(0.6)",
+    });
+    gsap.set("#logoReflection", { opacity: 0 });
+    gsap.set(".stage::before", { opacity: 0 });
+    gsap.set("#divider", { opacity: 0, scaleX: 0 });
+    gsap.set("#line1", { opacity: 0, y: 30 });
+    gsap.set("#line2", { opacity: 0, y: 30 });
+
+    // Ambient glow element (we animate the pseudo-element via a proxy)
+    const glowProxy = { opacity: 0 };
+    const stageBefore = document.querySelector(".stage");
+
+    // Master timeline — generous durations for the deliberate Apple cadence
+    const tl = gsap.timeline({
+      defaults: { ease: "power3.out" },
+      delay: 0.4, // brief pause before the show begins
+    });
+
+    tl
+      // 1 ─ Logo fade-in + scale + deblur
+      .to("#logo", {
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px) brightness(1)",
+        duration: 1.6,
+        ease: "power2.out",
+      })
+
+      // 2 ─ Ambient glow behind logo (fades in slightly before logo finishes)
+      .to(
+        glowProxy,
+        {
+          opacity: 1,
+          duration: 1.2,
+          ease: "power2.inOut",
+          onUpdate() {
+            stageBefore.style.setProperty(
+              "--glow-opacity",
+              glowProxy.opacity
+            );
+          },
+        },
+        "-=1.0"
+      )
+
+      // 3 ─ Reflection under logo
+      .to(
+        "#logoReflection",
+        {
+          opacity: 1,
+          duration: 1,
+          ease: "power2.inOut",
+        },
+        "-=0.8"
+      )
+
+      // 4 ─ Divider line draws in
+      .to(
+        "#divider",
+        {
+          opacity: 1,
+          scaleX: 1,
+          duration: 0.8,
+          ease: "power3.inOut",
+        },
+        "-=0.4"
+      )
+
+      // 5 ─ First tagline line slides up
+      .to(
+        "#line1",
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.3"
+      )
+
+      // 6 ─ Second tagline line slides up (staggered)
+      .to(
+        "#line2",
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: "power3.out",
+        },
+        "-=0.7"
+      )
+
+      // 7 ─ Gentle logo "breathe" pulse after everything settles
+      .to("#logo", {
+        scale: 1.03,
+        duration: 2,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: 1,
+      });
+
+    /* ── Use CSS custom property for the pseudo-element glow ──── */
+    // The pseudo-element can't be animated directly, so we drive it via a
+    // CSS variable set from the proxy above.
+    const styleTag = document.createElement("style");
+    styleTag.textContent = `
+      .stage::before {
+        opacity: var(--glow-opacity, 0);
+      }
+    `;
+    document.head.appendChild(styleTag);
+  </script>
+</body>
+</html>
