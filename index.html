@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UtopLearn — Intro</title>
 
-  <!-- Google Fonts – clean Apple-style sans-serif -->
+  <!-- Google Fonts – Lobster Two Bold -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Lobster+Two:wght@700&display=swap"
     rel="stylesheet"
   />
 
   <!-- GSAP 3 core + plugins from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://assets.codepen.io/16327/MorphSVGPlugin3.min.js"></script>
+  <script src="https://assets.codepen.io/16327/SplitText3.min.js"></script>
 
   <style>
     /* ── Reset & base ─────────────────────────────────── */
@@ -32,8 +33,7 @@
       height: 100%;
       overflow: hidden;
       background: #4D1F13;
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Helvetica, Arial, sans-serif;
+      font-family: "Lobster Two", cursive;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
@@ -210,11 +210,11 @@
             class="morph-target"
             d="M 612 250 C 612 210 753 210 753 250 L 753 900 L 713 1010 L 682.5 1100 L 652 1010 L 612 900 Z"
           />
-          <!-- Diploma (rolled scroll) -->
+          <!-- Hourglass -->
           <path
-            id="morphDiploma"
+            id="morphHourglass"
             class="morph-target"
-            d="M 280 420 C 280 350 380 350 380 420 L 380 400 L 985 400 L 985 420 C 985 350 1085 350 1085 420 L 1085 960 C 1085 1030 985 1030 985 960 L 985 980 L 380 980 L 380 960 C 380 1030 280 1030 280 960 Z"
+            d="M 350 200 L 1015 200 L 1015 280 L 780 280 L 682 580 L 780 880 L 1015 880 L 1015 1165 L 350 1165 L 350 880 L 585 880 L 682 580 L 585 280 L 350 280 Z"
           />
         </g>
         <path
@@ -250,27 +250,20 @@
     if (window.MorphSVGPlugin) {
       gsap.registerPlugin(MorphSVGPlugin);
     }
+    if (window.SplitText) {
+      gsap.registerPlugin(SplitText);
+    }
 
     const logoSvg = document.querySelector("#logoSvg");
     const logoPng = document.querySelector("#logoPng");
     const logoPath = document.querySelector("#logoPath");
     const originalPath = logoPath.getAttribute("d");
 
-    // Split tagline lines into individual letter spans for staggered animation
-    function splitToLetters(selector) {
-      const el = document.querySelector(selector);
-      const text = el.textContent;
-      el.textContent = '';
-      text.split('').forEach(function(char) {
-        const span = document.createElement('span');
-        span.textContent = char === ' ' ? '\u00A0' : char;
-        el.appendChild(span);
-      });
-      return el.querySelectorAll('span');
-    }
-
-    const line1Letters = splitToLetters('#line1');
-    const line2Letters = splitToLetters('#line2');
+    // Split tagline lines using GSAP SplitText plugin
+    const split1 = new SplitText('#line1', { type: 'chars' });
+    const split2 = new SplitText('#line2', { type: 'chars' });
+    const line1Chars = split1.chars;
+    const line2Chars = split2.chars;
 
     // Set initial states (GSAP best practice: explicit initial values)
     gsap.set(logoSvg, {
@@ -291,8 +284,8 @@
       transformOrigin: "50% 50%",
     });
     gsap.set("#divider", { opacity: 0, scaleX: 0, transformOrigin: "50% 50%" });
-    gsap.set(line1Letters, { opacity: 0, y: 40 });
-    gsap.set(line2Letters, { opacity: 0, y: 40 });
+    gsap.set(line1Chars, { opacity: 0, y: 40 });
+    gsap.set(line2Chars, { opacity: 0, y: 40 });
 
     // Ambient glow element (we animate the pseudo-element via a proxy)
     const glowProxy = { opacity: 0 };
@@ -377,7 +370,7 @@
         logoPath,
         {
           duration: 0.9,
-          morphSVG: { shape: "#morphDiploma", shapeIndex: "auto" },
+          morphSVG: { shape: "#morphHourglass", shapeIndex: "auto" },
           fill: "#0f0b1b",
           stroke: "#ff8ab2",
           strokeWidth: 17,
@@ -457,23 +450,23 @@
         "-=0.4"
       )
       .to(
-        line1Letters,
+        line1Chars,
         {
           opacity: 1,
           y: 0,
           duration: 0.6,
-          stagger: 0.035,
+          stagger: 0.05,
           ease: "back.out(1.7)",
         },
         "-=0.35"
       )
       .to(
-        line2Letters,
+        line2Chars,
         {
           opacity: 1,
           y: 0,
           duration: 0.6,
-          stagger: 0.035,
+          stagger: 0.05,
           ease: "back.out(1.7)",
         },
         "-=0.5"
