@@ -62,7 +62,8 @@
       border-radius: 50%;
       background: radial-gradient(
         circle,
-        rgba(219, 100, 130, 0.12) 0%,
+        rgba(208, 129, 58, 0.25) 0%,
+        rgba(113, 54, 24, 0.12) 40%,
         transparent 70%
       );
       opacity: var(--glow-opacity, 0);
@@ -134,12 +135,12 @@
       z-index: 1;
       margin-top: 48px;
       text-align: center;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .tagline-line {
       display: block;
-      color: #f5f5f7;
+      color: #1470f2;
       letter-spacing: -0.02em;
       line-height: 1.2;
       will-change: transform, opacity;
@@ -153,8 +154,13 @@
     .tagline-line:last-child {
       font-size: clamp(1.1rem, 2.4vw, 1.7rem);
       font-weight: 300;
-      color: rgba(245, 245, 247, 0.7);
+      color: #1470f2;
       margin-top: 8px;
+    }
+
+    .tagline-line span {
+      display: inline-block;
+      will-change: transform, opacity;
     }
 
     /* ── Divider line ─────────────────────────────────── */
@@ -192,27 +198,23 @@
         focusable="false"
       >
         <g class="morph-targets" aria-hidden="true">
-          <circle
-            id="morphCircle"
+          <!-- Book (open book shape) -->
+          <path
+            id="morphBook"
             class="morph-target"
-            cx="682.5"
-            cy="682.5"
-            r="420"
+            d="M 682.5 320 L 180 420 L 180 1000 L 682.5 900 L 1185 1000 L 1185 420 Z"
           />
-          <rect
-            id="morphSquare"
+          <!-- Pen (vertical pen/pencil) -->
+          <path
+            id="morphPen"
             class="morph-target"
-            x="262.5"
-            y="262.5"
-            width="840"
-            height="840"
-            rx="200"
-            ry="200"
+            d="M 612 250 C 612 210 753 210 753 250 L 753 900 L 713 1010 L 682.5 1100 L 652 1010 L 612 900 Z"
           />
-          <polygon
-            id="morphDiamond"
+          <!-- Diploma (rolled scroll) -->
+          <path
+            id="morphDiploma"
             class="morph-target"
-            points="682.5,210 1155,682.5 682.5,1155 210,682.5"
+            d="M 280 420 C 280 350 380 350 380 420 L 380 400 L 985 400 L 985 420 C 985 350 1085 350 1085 420 L 1085 960 C 1085 1030 985 1030 985 960 L 985 980 L 380 980 L 380 960 C 380 1030 280 1030 280 960 Z"
           />
         </g>
         <path
@@ -247,13 +249,28 @@
 
     if (window.MorphSVGPlugin) {
       gsap.registerPlugin(MorphSVGPlugin);
-      MorphSVGPlugin.convertToPath(".morph-target");
     }
 
     const logoSvg = document.querySelector("#logoSvg");
     const logoPng = document.querySelector("#logoPng");
     const logoPath = document.querySelector("#logoPath");
     const originalPath = logoPath.getAttribute("d");
+
+    // Split tagline lines into individual letter spans for staggered animation
+    function splitToLetters(selector) {
+      const el = document.querySelector(selector);
+      const text = el.textContent;
+      el.textContent = '';
+      text.split('').forEach(function(char) {
+        const span = document.createElement('span');
+        span.textContent = char === ' ' ? '\u00A0' : char;
+        el.appendChild(span);
+      });
+      return el.querySelectorAll('span');
+    }
+
+    const line1Letters = splitToLetters('#line1');
+    const line2Letters = splitToLetters('#line2');
 
     // Set initial states (GSAP best practice: explicit initial values)
     gsap.set(logoSvg, {
@@ -274,8 +291,8 @@
       transformOrigin: "50% 50%",
     });
     gsap.set("#divider", { opacity: 0, scaleX: 0, transformOrigin: "50% 50%" });
-    gsap.set("#line1", { opacity: 0, y: 26 });
-    gsap.set("#line2", { opacity: 0, y: 26 });
+    gsap.set(line1Letters, { opacity: 0, y: 40 });
+    gsap.set(line2Letters, { opacity: 0, y: 40 });
 
     // Ambient glow element (we animate the pseudo-element via a proxy)
     const glowProxy = { opacity: 0 };
@@ -322,12 +339,12 @@
         "-=0.8"
       )
 
-      // 4 ─ Morph sequence
+      // 4 ─ Morph sequence: book → pen → diploma → original
       .to(
         logoPath,
         {
           duration: 0.9,
-          morphSVG: { shape: "#morphCircle", shapeIndex: "auto" },
+          morphSVG: { shape: "#morphBook", shapeIndex: "auto" },
           fill: "#141026",
           stroke: "#ff7aa5",
           strokeWidth: 18,
@@ -339,7 +356,7 @@
         logoPath,
         {
           duration: 0.9,
-          morphSVG: { shape: "#morphSquare", shapeIndex: "auto" },
+          morphSVG: { shape: "#morphPen", shapeIndex: "auto" },
           fill: "#120b22",
           stroke: "#db6482",
           strokeWidth: 16,
@@ -360,7 +377,7 @@
         logoPath,
         {
           duration: 0.9,
-          morphSVG: { shape: "#morphDiamond", shapeIndex: "auto" },
+          morphSVG: { shape: "#morphDiploma", shapeIndex: "auto" },
           fill: "#0f0b1b",
           stroke: "#ff8ab2",
           strokeWidth: 17,
@@ -440,24 +457,26 @@
         "-=0.4"
       )
       .to(
-        "#line1",
+        line1Letters,
         {
           opacity: 1,
           y: 0,
-          duration: 0.9,
-          ease: "power3.out",
+          duration: 0.6,
+          stagger: 0.035,
+          ease: "back.out(1.7)",
         },
         "-=0.35"
       )
       .to(
-        "#line2",
+        line2Letters,
         {
           opacity: 1,
           y: 0,
-          duration: 0.9,
-          ease: "power3.out",
+          duration: 0.6,
+          stagger: 0.035,
+          ease: "back.out(1.7)",
         },
-        "-=0.7"
+        "-=0.5"
       )
 
       // 7 ─ Gentle logo breathe
