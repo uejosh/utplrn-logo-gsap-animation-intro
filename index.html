@@ -268,6 +268,9 @@
     const logoPng = document.querySelector("#logoPng");
     const logoPath = document.querySelector("#logoPath");
 
+    // Store the original logo path data so we can morph back to it
+    const originalPathD = logoPath.getAttribute("d");
+
     // Split tagline lines using GSAP SplitText plugin
     const split1 = new SplitText('#line1', { type: 'chars' });
     const split2 = new SplitText('#line2', { type: 'chars' });
@@ -418,7 +421,31 @@
         "<"
       )
 
-      // 5 ─ Transition to PNG logo
+      // 5 ─ Morph back to original logo SVG
+      .to(
+        logoPath,
+        {
+          duration: 1,
+          morphSVG: { shape: originalPathD, shapeIndex: "auto" },
+          fill: "#080615",
+          stroke: "#db6482",
+          strokeWidth: 16,
+          ease: "power2.inOut",
+        },
+        "-=0.15"
+      )
+      .to(
+        logoSvg,
+        {
+          scale: 1,
+          rotate: 0,
+          duration: 0.6,
+          ease: "sine.inOut",
+        },
+        "<"
+      )
+
+      // 6 ─ Transition to PNG logo
       .to(
         logoSvg,
         {
@@ -442,7 +469,7 @@
         "<0.1"
       )
 
-      // 6 ─ Reflection, divider, and tagline
+      // 7 ─ Reflection, divider, and tagline
       .to(
         "#logoReflection",
         {
@@ -485,7 +512,7 @@
         "-=0.5"
       )
 
-      // 7 ─ Gentle logo breathe
+      // 8 ─ Gentle logo breathe
       .to(logoPng, {
         scale: 1.03,
         duration: 2,
